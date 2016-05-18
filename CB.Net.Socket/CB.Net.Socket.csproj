@@ -43,6 +43,12 @@
     <Compile Include="SocketHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\CB.Threading\CB.Threading.Tasks\CB.Threading.Tasks.csproj">
+      <Project>{a2412eee-f92d-4e96-9006-a6a18f132cd6}</Project>
+      <Name>CB.Threading.Tasks</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -3,60 +3,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using CB.Threading.Tasks;
 
 
 namespace CB.Net.Socket
 {
-    public static class TaskFactoryHelper
-    {
-        #region Methods
-        public static Task FromAsync<T1, T2, T3, T4>(this TaskFactory taskFactory,
-            Func<T1, T2, T3, T4, AsyncCallback, object, IAsyncResult> beginMethod, Action<IAsyncResult> endMethod,
-            T1 arg1, T2 arg2, T3 arg3, T4 arg4, object state)
-        {
-            var tcs = new TaskCompletionSource<object>();
-            beginMethod.Invoke(arg1, arg2, arg3, arg4, iar =>
-            {
-                endMethod.Invoke(iar);
-                tcs.SetResult(null);
-            }, state);
-            return tcs.Task;
-        }
-
-        public static Task FromAsync<T1, T2, T3, T4, T5>(this TaskFactory taskFactory,
-            Func<T1, T2, T3, T4, T5, AsyncCallback, object, IAsyncResult> beginMethod, Action<IAsyncResult> endMethod,
-            T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, object state)
-        {
-            var tcs = new TaskCompletionSource<object>();
-            beginMethod.Invoke(arg1, arg2, arg3, arg4, arg5, iar =>
-            {
-                endMethod.Invoke(iar);
-                tcs.SetResult(null);
-            }, state);
-            return tcs.Task;
-        }
-
-        public static Task<TResult> FromAsync<T1, T2, T3, T4, TResult>(this TaskFactory taskFactory,
-            Func<T1, T2, T3, T4, AsyncCallback, object, IAsyncResult> beginMethod, Func<IAsyncResult, TResult> endMethod,
-            T1 arg1, T2 arg2, T3 arg3, T4 arg4, object state)
-        {
-            var tcs = new TaskCompletionSource<TResult>();
-            beginMethod.Invoke(arg1, arg2, arg3, arg4, iar => { tcs.SetResult(endMethod.Invoke(iar)); }, state);
-            return tcs.Task;
-        }
-
-        public static Task<TResult> FromAsync<T1, T2, T3, T4, T5, TResult>(this TaskFactory taskFactory,
-            Func<T1, T2, T3, T4, T5, AsyncCallback, object, IAsyncResult> beginMethod,
-            Func<IAsyncResult, TResult> endMethod,
-            T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, object state)
-        {
-            var tcs = new TaskCompletionSource<TResult>();
-            beginMethod.Invoke(arg1, arg2, arg3, arg4, arg5, iar => { tcs.SetResult(endMethod.Invoke(iar)); }, state);
-            return tcs.Task;
-        }
-        #endregion
-    }
-
     public static class SocketHelper
     {
         #region Methods
