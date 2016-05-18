@@ -12,7 +12,7 @@ namespace CB.Net.Socket
     {
         #region Methods
         public static Task<System.Net.Sockets.Socket> AcceptAsync(this System.Net.Sockets.Socket socket)
-            => Task.Factory.FromAsync(socket.BeginAccept, socket.EndAccept, null);
+            => Task<System.Net.Sockets.Socket>.Factory.FromAsync(socket.BeginAccept, socket.EndAccept, null);
 
         public static Task<System.Net.Sockets.Socket> AcceptAsync(this System.Net.Sockets.Socket socket, int receiveSize)
             => Task.Factory.FromAsync(socket.BeginAccept, socket.EndAccept, receiveSize, null);
