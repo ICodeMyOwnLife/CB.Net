@@ -10,6 +10,7 @@ namespace CB.Net.Socket
         #region  Properties & Indexers
         public AddressFamily AddressFamily { get; set; } = AddressFamily.InterNetwork;
         public int Backlog { get; set; } = 100;
+        public string Eof { get; set; } = "<EOF>";
         public string IpAddress { get; set; } = "127.0.0.1";
         public int Port { get; set; } = 8080;
         public ProtocolType ProtocolType { get; set; } = ProtocolType.Tcp;
