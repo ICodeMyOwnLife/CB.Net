@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CB.Net.Socket", "CB.Net.Soc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CB.Threading.Tasks", "..\CB.Threading\CB.Threading.Tasks\CB.Threading.Tasks.csproj", "{A2412EEE-F92D-4E96-9006-A6A18F132CD6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CB.Model.Common", "..\CB.Model\CB.Model.Common\CB.Model.Common.csproj", "{33A5DF99-1312-4023-A6EF-EABB9848F5A6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{A2412EEE-F92D-4E96-9006-A6A18F132CD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2412EEE-F92D-4E96-9006-A6A18F132CD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2412EEE-F92D-4E96-9006-A6A18F132CD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33A5DF99-1312-4023-A6EF-EABB9848F5A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33A5DF99-1312-4023-A6EF-EABB9848F5A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33A5DF99-1312-4023-A6EF-EABB9848F5A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33A5DF99-1312-4023-A6EF-EABB9848F5A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
