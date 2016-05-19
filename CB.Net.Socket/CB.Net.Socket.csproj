@@ -53,6 +53,10 @@
       <Project>{33A5DF99-1312-4023-A6EF-EABB9848F5A6}</Project>
       <Name>CB.Model.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\CB.Model\CB.Model.Serialization\CB.Model.Serialization.csproj">
+      <Project>{D1C79FD2-D8F3-4C20-8AF6-C9D570F29D77}</Project>
+      <Name>CB.Model.Serialization</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CB.Threading\CB.Threading.Tasks\CB.Threading.Tasks.csproj">
       <Project>{a2412eee-f92d-4e96-9006-a6a18f132cd6}</Project>
       <Name>CB.Threading.Tasks</Name>

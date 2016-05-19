@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CB.Model.Common;
+using CB.Model.Serialization;
 
 
 namespace CB.Net.Socket
@@ -63,7 +63,7 @@ namespace CB.Net.Socket
         {
             return new TcpClient(_ipAddress, _port);
         }
-        
+
         private static FileStream GetReaderStream(string filePath)
         {
             return File.OpenRead(filePath);
