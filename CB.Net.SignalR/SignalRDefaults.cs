@@ -4,7 +4,7 @@
     {
         #region Fields
         public const string HUB_NAME = "SignalRHub";
-        public const string URL = "http://127.0.0.1";
+        public const string URL = "http://127.0.0.1:1111";
         #endregion
     }
 }
