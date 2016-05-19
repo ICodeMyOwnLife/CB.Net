@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CB.Model.Common;
 using CB.Model.Serialization;
 
 
@@ -16,7 +17,6 @@ namespace CB.Net.Socket
 
 
         #region Fields
-        private const double MINIMUM_PROGRESS_INTERVAL = 0.006172;
         private readonly int _backlog;
         private readonly string _ipAddress;
         private readonly int _port;
@@ -48,27 +48,24 @@ namespace CB.Net.Socket
         }
 
         public async Task ReceiveFileAsync(ProvideFilePathCallback provideFilePathCallback,
-            CancellationToken cancellationToken, IProgress<double> progressReporter = null)
+            CancellationToken cancellationToken, IProgress<long> progressReporter = null)
         {
             var fileInfo = await ReceiveObjectAsync<NetFileInfo>(cancellationToken);
             var filePath = provideFilePathCallback(fileInfo.FileName);
+            var fileProgressReporter = progressReporter as IReportFileProgress;
+            if (fileProgressReporter != null) fileProgressReporter.FileSize = fileInfo.FileSize;
 
             using (var writer = File.OpenWrite(filePath))
             {
-                double totalBytesRead = 0, progress = 0;
+                long totalBytesRead = 0;
                 progressReporter?.Report(0);
 
                 await ReceiveData((buffer, bytesRead) =>
                 {
                     writer.Write(buffer, 0, bytesRead);
                     totalBytesRead += bytesRead;
-                    var newProgress = totalBytesRead / fileInfo.FileSize;
-                    if (!(newProgress - progress > MINIMUM_PROGRESS_INTERVAL)) return;
-
-                    progress = newProgress;
-                    progressReporter?.Report(progress);
+                    progressReporter?.Report(totalBytesRead);
                 }, cancellationToken);
-                progressReporter?.Report(1);
             }
         }
 
