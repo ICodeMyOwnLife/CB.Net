@@ -75,7 +75,16 @@ namespace CB.Net.Socket
         #region Implementation
         private TcpClient CreateTcpClient()
         {
-            return new TcpClient(_ipAddress, _port);
+            var client = new TcpClient(_ipAddress, _port);
+            client.Connect(_ipAddress, _port);
+            return client;
+        }
+
+        private async Task<TcpClient> CreateTcpClientAsync()
+        {
+            var client = new TcpClient(_ipAddress, _port);
+            await client.ConnectAsync(_ipAddress, _port);
+            return client;
         }
 
         private static FileStream GetReaderStream(string filePath)
@@ -116,7 +125,7 @@ namespace CB.Net.Socket
 
         private async Task UseNetworkStreamAsync(Func<Stream, Task> useStreamAction)
         {
-            using (var tcpClient = CreateTcpClient())
+            using (var tcpClient = await CreateTcpClientAsync())
             {
                 using (var netStream = tcpClient.GetStream())
                 {

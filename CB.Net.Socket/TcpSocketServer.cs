@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -50,6 +49,20 @@ namespace CB.Net.Socket
             _tcpListener.Stop();
         }
 
+        public void ReceiveFile(ProvideFilePathCallback provideFilePathCallback)
+        {
+            var fileInfo = ReceiveObject<NetFileInfo>();
+            var filePath = provideFilePathCallback(fileInfo.FileName);
+
+            UseNetworkStream(netStream =>
+            {
+                using (var writer = OpenWriterStream(filePath))
+                {
+                    netStream.CopyTo(writer, _bufferSize);
+                }
+            });
+        }
+
         public async Task ReceiveFileAsync(ProvideFilePathCallback provideFilePathCallback,
             IProgress<long> progressReporter)
             => await ReceiveFileAsync(provideFilePathCallback, CancellationToken.None, progressReporter);
@@ -62,7 +75,7 @@ namespace CB.Net.Socket
             var fileProgressReporter = progressReporter as IReportFileProgress;
             if (fileProgressReporter != null) fileProgressReporter.FileSize = fileInfo.FileSize;
 
-            using (var writer = File.OpenWrite(filePath))
+            using (var writer = OpenWriterStream(filePath))
             {
                 long totalBytesRead = 0;
                 progressReporter?.Report(0);
@@ -76,30 +89,40 @@ namespace CB.Net.Socket
             }
         }
 
-        public async Task<TimeSpan> ReceiveFileAsync(ProvideFilePathCallback provideFilePathCallback)
+        public async Task ReceiveFileAsync(ProvideFilePathCallback provideFilePathCallback)
             => await ReceiveFileAsync(provideFilePathCallback, CancellationToken.None);
 
-        public async Task<TimeSpan> ReceiveFileAsync(ProvideFilePathCallback provideFilePathCallback,
+        public async Task ReceiveFileAsync(ProvideFilePathCallback provideFilePathCallback,
             CancellationToken cancellationToken)
         {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
             var fileInfo = await ReceiveObjectAsync<NetFileInfo>(cancellationToken);
             var filePath = provideFilePathCallback(fileInfo.FileName);
 
             await UseNetworkStreamAsync(async netStream =>
             {
-                using (var writer = File.OpenWrite(filePath))
+                using (var writer = OpenWriterStream(filePath))
                 {
                     await netStream.CopyToAsync(writer, _bufferSize, cancellationToken);
                 }
             });
-            stopwatch.Stop();
-            return stopwatch.Elapsed;
         }
+
+        public T ReceiveObject<T>()
+            => Deserialize<T>(ReceiveText());
 
         public async Task<T> ReceiveObjectAsync<T>(CancellationToken cancellationToken)
             => Deserialize<T>(await ReceiveTextAsync(cancellationToken));
+
+        public string ReceiveText()
+        {
+            var sb = new StringBuilder();
+            ReceiveData((buffer, bytesRead) =>
+            {
+                var text = GetDataText(buffer, bytesRead);
+                sb.Append(text);
+            });
+            return sb.ToString();
+        }
 
         public async Task<string> ReceiveTextAsync(CancellationToken cancellationToken)
         {
@@ -118,8 +141,45 @@ namespace CB.Net.Socket
         private static T Deserialize<T>(string contents)
             => new JsonModelSerializer().Deserialize<T>(contents);
 
+        private TResult FetchNetworkStream<TResult>(Func<Stream, TResult> fetchNetworkStreamAction)
+        {
+            using (var client = _tcpListener.AcceptTcpClient())
+            {
+                using (var netStream = client.GetStream())
+                {
+                    return fetchNetworkStreamAction(netStream);
+                }
+            }
+        }
+
+        private async Task<TResult> FetchNetworkStreamAsync<TResult>(
+            Func<Stream, Task<TResult>> fetchNetworkStreamAction)
+        {
+            using (var client = await _tcpListener.AcceptTcpClientAsync())
+            {
+                using (var netStream = client.GetStream())
+                {
+                    return await fetchNetworkStreamAction(netStream);
+                }
+            }
+        }
+
         private static string GetDataText(byte[] buffer, int bytesRead)
             => Encoding.Unicode.GetString(buffer, 0, bytesRead);
+
+        private static FileStream OpenWriterStream(string filePath)
+            => File.OpenWrite(filePath);
+
+        private void ReceiveData(Action<byte[], int> onReceiveData)
+            => UseNetworkStream(netStream =>
+            {
+                var buffer = new byte[_bufferSize];
+                int bytesRead;
+                while ((bytesRead = netStream.Read(buffer, 0, _bufferSize)) != 0)
+                {
+                    onReceiveData(buffer, bytesRead);
+                }
+            });
 
         private async Task ReceiveDataAsync(Action<byte[], int> onReceiveData, CancellationToken cancellationToken)
             => await UseNetworkStreamAsync(async netStream =>
@@ -143,13 +203,13 @@ namespace CB.Net.Socket
                 }
             });
 
-        private async Task<TResult> UseNetworkStreamAsync<TResult>(Func<Stream, Task<TResult>> useNetworkStreamAction)
+        private void UseNetworkStream(Action<Stream> useNetworkStreamAction)
         {
-            using (var client = await _tcpListener.AcceptTcpClientAsync())
+            using (var client = _tcpListener.AcceptTcpClient())
             {
                 using (var netStream = client.GetStream())
                 {
-                    return await useNetworkStreamAction(netStream);
+                    useNetworkStreamAction(netStream);
                 }
             }
         }
@@ -167,6 +227,3 @@ namespace CB.Net.Socket
         #endregion
     }
 }
-
-
-// TODO: add Sync methods
