@@ -20,7 +20,8 @@ namespace CB.Net.Socket
 
         #region  Constructors & Destructor
         public TcpSocketClient(TcpSocketConfiguration configuration)
-            : this(configuration.IpAddress, configuration.Port, configuration.BufferSize) { }
+            : this(configuration.ConfigurationSection.IpAddress, configuration.ConfigurationSection.Port,
+                configuration.ConfigurationSection.BufferSize) { }
 
         public TcpSocketClient(string ipAddress = TcpSocketParams.IP_ADDRESS, int port = TcpSocketParams.PORT,
             int bufferSize = TcpSocketParams.BUFFER_SIZE)

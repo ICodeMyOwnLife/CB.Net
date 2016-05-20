@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConfigurationBase.cs" />
     <Compile Include="NetFileInfo.cs" />
     <Compile Include="ProvideFilePathCallback.cs" />
     <Compile Include="SocketHelper.cs" />
@@ -48,6 +49,7 @@
     <Compile Include="SocketManager.cs" />
     <Compile Include="TcpSocketClient.cs" />
     <Compile Include="TcpSocketConfiguration.cs" />
+    <Compile Include="TcpSocketConfigurationSection.cs" />
     <Compile Include="TcpSocketParams.cs" />
     <Compile Include="TcpSocketServer.cs" />
   </ItemGroup>

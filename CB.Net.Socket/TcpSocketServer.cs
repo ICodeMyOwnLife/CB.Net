@@ -24,7 +24,8 @@ namespace CB.Net.Socket
 
         #region  Constructors & Destructor
         public TcpSocketServer(TcpSocketConfiguration configuration)
-            : this(configuration.IpAddress, configuration.Port, configuration.Backlog, configuration.BufferSize) { }
+            : this(configuration.ConfigurationSection.IpAddress, configuration.ConfigurationSection.Port,
+                configuration.ConfigurationSection.Backlog, configuration.ConfigurationSection.BufferSize) { }
 
         public TcpSocketServer(string ipAddress = TcpSocketParams.IP_ADDRESS, int port = TcpSocketParams.PORT,
             int backlog = TcpSocketParams.BACKLOG, int bufferSize = TcpSocketParams.BUFFER_SIZE)

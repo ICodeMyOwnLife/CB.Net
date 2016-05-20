@@ -1,9 +1,15 @@
-using System.Configuration;
-
-
 namespace CB.Net.Socket
 {
-    public class TcpSocketConfiguration
+    public class TcpSocketConfiguration: ConfigurationBase<TcpSocketConfigurationSection>
+    {
+        #region  Constructors & Destructor
+        public TcpSocketConfiguration(string configSectionName): base(configSectionName) { }
+
+        public TcpSocketConfiguration(): this("tcpSocketConfig") { }
+        #endregion
+    }
+
+    /*public class TcpSocketConfiguration
     {
         #region  Properties & Indexers
         public int Backlog { get; set; } = GetBacklog();
@@ -42,5 +48,5 @@ namespace CB.Net.Socket
         private static string GetSettingString(string setting, string defaultValue)
             => GetSetting(setting) ?? defaultValue;
         #endregion
-    }
+    }*/
 }
