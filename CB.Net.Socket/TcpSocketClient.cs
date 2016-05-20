@@ -12,17 +12,22 @@ namespace CB.Net.Socket
     public class TcpSocketClient
     {
         #region Fields
-        private readonly int _bufferSize = 32768; // TODO: bufferSize
+        private readonly int _bufferSize;
         private readonly string _ipAddress;
         private readonly int _port;
         #endregion
 
 
         #region  Constructors & Destructor
-        public TcpSocketClient(string ipAddress = TcpSocketParams.IP_ADDRESS, int port = TcpSocketParams.PORT)
+        public TcpSocketClient(TcpSocketConfiguration configuration)
+            : this(configuration.IpAddress, configuration.Port, configuration.BufferSize) { }
+
+        public TcpSocketClient(string ipAddress = TcpSocketParams.IP_ADDRESS, int port = TcpSocketParams.PORT,
+            int bufferSize = TcpSocketParams.BUFFER_SIZE)
         {
             _ipAddress = ipAddress;
             _port = port;
+            _bufferSize = bufferSize;
         }
         #endregion
 
@@ -37,6 +42,9 @@ namespace CB.Net.Socket
             }
         }
 
+        public async Task SendFileAsync(string filePath)
+            => await SendFileAsync(filePath, CancellationToken.None);
+
         public async Task SendFileAsync(string filePath, CancellationToken cancellationToken)
         {
             await SendObjectAsync(new NetFileInfo(filePath), cancellationToken);
@@ -48,10 +56,16 @@ namespace CB.Net.Socket
 
         public void SendObject<T>(T obj) => SendText(Serialize(obj));
 
+        public async Task SendObjectAsync<T>(T obj)
+            => await SendObjectAsync(obj, CancellationToken.None);
+
         public async Task SendObjectAsync<T>(T obj, CancellationToken cancellationToken)
             => await SendTextAsync(Serialize(obj), cancellationToken);
 
         public void SendText(string text) => SendData(GetTextData(text));
+
+        public async Task SendTextAsync(string text)
+            => await SendTextAsync(text, CancellationToken.None);
 
         public async Task SendTextAsync(string text, CancellationToken cancellationToken)
             => await SendDataAsync(GetTextData(text), cancellationToken);
