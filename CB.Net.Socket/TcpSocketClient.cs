@@ -75,14 +75,14 @@ namespace CB.Net.Socket
         #region Implementation
         private TcpClient CreateTcpClient()
         {
-            var client = new TcpClient(_ipAddress, _port);
+            var client = new TcpClient();
             client.Connect(_ipAddress, _port);
             return client;
         }
 
         private async Task<TcpClient> CreateTcpClientAsync()
         {
-            var client = new TcpClient(_ipAddress, _port);
+            var client = new TcpClient();
             await client.ConnectAsync(_ipAddress, _port);
             return client;
         }
