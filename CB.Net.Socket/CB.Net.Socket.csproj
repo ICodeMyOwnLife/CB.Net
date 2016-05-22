@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationBase.cs" />
+    <Compile Include="IFileInfo.cs" />
     <Compile Include="NetFileInfo.cs" />
     <Compile Include="ProvideFilePathCallback.cs" />
     <Compile Include="SocketHelper.cs" />

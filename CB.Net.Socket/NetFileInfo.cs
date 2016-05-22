@@ -3,7 +3,7 @@ using System.IO;
 
 namespace CB.Net.Socket
 {
-    public class NetFileInfo
+    public class NetFileInfo: IFileInfo
     {
         #region  Constructors & Destructor
         public NetFileInfo() { }

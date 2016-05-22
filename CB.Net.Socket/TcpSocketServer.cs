@@ -5,7 +5,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CB.Model.Common;
 using CB.Model.Serialization;
 
 
@@ -52,14 +51,13 @@ namespace CB.Net.Socket
 
         public void ReceiveFile(ProvideFilePathCallback provideFilePathCallback)
         {
-            var fileInfo = ReceiveObject<NetFileInfo>();
-            var filePath = provideFilePathCallback(fileInfo.FileName);
+            var filePath = GetFilePath(provideFilePathCallback);
 
             UseNetworkStream(netStream =>
             {
                 using (var writer = OpenWriterStream(filePath))
                 {
-                    netStream.CopyTo(writer, _bufferSize);
+                    netStream.CopyTo(writer);
                 }
             });
         }
@@ -71,33 +69,39 @@ namespace CB.Net.Socket
         public async Task ReceiveFileAsync(ProvideFilePathCallback provideFilePathCallback,
             CancellationToken cancellationToken, IProgress<long> progressReporter)
         {
-            var fileInfo = await ReceiveObjectAsync<NetFileInfo>(cancellationToken);
-            var filePath = provideFilePathCallback(fileInfo.FileName);
-            var fileProgressReporter = progressReporter as IReportFileProgress;
-            if (fileProgressReporter != null) fileProgressReporter.FileSize = fileInfo.FileSize;
+            var filePath = await GetFilePathAsync(provideFilePathCallback, cancellationToken);
 
             using (var writer = OpenWriterStream(filePath))
             {
                 long totalBytesRead = 0;
-                progressReporter?.Report(0);
+                progressReporter.Report(0);
 
                 await ReceiveDataAsync(async (buffer, bytesRead) =>
                 {
                     await writer.WriteAsync(buffer, 0, bytesRead, cancellationToken);
                     totalBytesRead += bytesRead;
-                    progressReporter?.Report(totalBytesRead);
+                    progressReporter.Report(totalBytesRead);
                 }, cancellationToken);
             }
         }
 
         public async Task ReceiveFileAsync(ProvideFilePathCallback provideFilePathCallback)
-            => await ReceiveFileAsync(provideFilePathCallback, CancellationToken.None);
+        {
+            var filePath = await GetFilePathAsync(provideFilePathCallback, CancellationToken.None);
+
+            await UseNetworkStreamAsync(async netStream =>
+            {
+                using (var writer = OpenWriterStream(filePath))
+                {
+                    await netStream.CopyToAsync(writer);
+                }
+            });
+        }
 
         public async Task ReceiveFileAsync(ProvideFilePathCallback provideFilePathCallback,
             CancellationToken cancellationToken)
         {
-            var fileInfo = await ReceiveObjectAsync<NetFileInfo>(cancellationToken);
-            var filePath = provideFilePathCallback(fileInfo.FileName);
+            var filePath = await GetFilePathAsync(provideFilePathCallback, cancellationToken);
 
             await UseNetworkStreamAsync(async netStream =>
             {
@@ -167,6 +171,21 @@ namespace CB.Net.Socket
 
         private static string GetDataText(byte[] buffer, int bytesRead)
             => Encoding.Unicode.GetString(buffer, 0, bytesRead);
+
+        private string GetFilePath(ProvideFilePathCallback provideFilePathCallback)
+        {
+            var fileInfo = ReceiveObject<NetFileInfo>();
+            var filePath = provideFilePathCallback(fileInfo);
+            return filePath;
+        }
+
+        private async Task<string> GetFilePathAsync(ProvideFilePathCallback provideFilePathCallback,
+            CancellationToken cancellationToken)
+        {
+            var fileInfo = await ReceiveObjectAsync<NetFileInfo>(cancellationToken);
+            var filePath = provideFilePathCallback(fileInfo);
+            return filePath;
+        }
 
         private static FileStream OpenWriterStream(string filePath)
             => File.OpenWrite(filePath);
