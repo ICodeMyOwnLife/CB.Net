@@ -75,6 +75,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignalRConfigSection.cs" />
+    <Compile Include="SignalRConfiguration.cs" />
     <Compile Include="SignalRDefaults.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -88,6 +89,12 @@
     <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Scripts\jquery-2.2.3.min.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\CB.Configuration\CB.Configuration.Common\CB.Configuration.Common.csproj">
+      <Project>{9F2166AE-F09B-49C1-9B6D-2EE861593A73}</Project>
+      <Name>CB.Configuration.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

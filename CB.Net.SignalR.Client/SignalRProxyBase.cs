@@ -14,6 +14,9 @@ namespace CB.Net.SignalR.Client
 
 
         #region  Constructors & Destructor
+        protected SignalRProxyBase(SignalRConfiguration configuration)
+            : this(configuration.ConfigurationSection.Url, configuration.ConfigurationSection.HubName) { }
+
         protected SignalRProxyBase(string signalRUrl, string hubName)
         {
             SignalRUrl = signalRUrl;
