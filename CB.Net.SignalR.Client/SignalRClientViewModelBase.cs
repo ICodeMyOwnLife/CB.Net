@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CB.Model.Prism;
@@ -38,10 +39,14 @@ namespace CB.Net.SignalR.Client
 
 
         #region Event Handlers
-        private void Proxy_Error(object sender, string e)
+        private void Proxy_Error(object sender, Exception exception)
         {
-            NotificationRequestProvider.NotifyError(e);
+            NotificationRequestProvider.NotifyError(exception.Message);
         }
         #endregion
     }
 }
+
+
+
+// CanSignIn, CanSendMessage, CanChoose

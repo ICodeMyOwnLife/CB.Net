@@ -32,7 +32,7 @@ namespace CB.Net.SignalR.Client
 
 
         #region Events
-        public event EventHandler<string> Error;
+        public event EventHandler<Exception> Error;
         #endregion
 
 
@@ -40,19 +40,18 @@ namespace CB.Net.SignalR.Client
         public virtual async Task ConnectAsync()
         {
             InitializeProxy();
-            try
-            {
-                await _hubConnection.Start();
-            }
-            catch (Exception exception)
-            {
-                OnError(exception.Message);
-            }
+            await TryAsync(async () => await _hubConnection.Start());
         }
 
         public virtual void Disconnect()
+            => Try(() => _hubConnection.Stop());
+        #endregion
+
+
+        #region Event Handlers
+        protected virtual void OnError(Exception exception)
         {
-            _hubConnection.Stop();
+            Error?.Invoke(this, exception);
         }
         #endregion
 
@@ -61,14 +60,33 @@ namespace CB.Net.SignalR.Client
         protected virtual void InitializeProxy()
         {
             _hubConnection = new HubConnection(SignalRUrl);
-            _hubConnection.Error += exception => OnError(exception.Message);
+            _hubConnection.Error += OnError;
             _hubProxy = _hubConnection.CreateHubProxy(HubName);
-            _hubProxy.On<string>("error", OnError);
+            _hubProxy.On<Exception>("error", OnError);
         }
 
-        protected virtual void OnError(string e)
+        protected virtual void Try(Action action)
         {
-            Error?.Invoke(this, e);
+            try
+            {
+                action();
+            }
+            catch (Exception exception)
+            {
+                OnError(exception);
+            }
+        }
+
+        protected virtual async Task TryAsync(Func<Task> action)
+        {
+            try
+            {
+                await action();
+            }
+            catch (Exception exception)
+            {
+                OnError(exception);
+            }
         }
         #endregion
     }

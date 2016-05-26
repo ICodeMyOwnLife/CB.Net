@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CB.Model.Common;
@@ -27,6 +28,7 @@ namespace CB.Net.SignalR.Server
 
         #region Abstract
         public abstract void Log(string logContent);
+        public abstract void LogError(Exception exception);
         #endregion
 
 
