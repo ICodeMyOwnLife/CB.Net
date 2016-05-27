@@ -34,7 +34,7 @@ namespace CB.Net.SignalR.Server
         #region Methods
         public virtual async Task<bool> Start()
         {
-            if (State != SignalRState.Disconnected)
+            if (!CanStart)
             {
                 SetStateError();
                 return false;
@@ -58,7 +58,7 @@ namespace CB.Net.SignalR.Server
 
         public virtual bool Stop()
         {
-            if (State != SignalRState.Connected)
+            if (!CanStop)
             {
                 SetStateError();
                 return false;

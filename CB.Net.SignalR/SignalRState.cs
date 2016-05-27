@@ -1,4 +1,4 @@
-﻿namespace CB.Net.SignalR.Server
+﻿namespace CB.Net.SignalR
 {
     public enum SignalRState
     {

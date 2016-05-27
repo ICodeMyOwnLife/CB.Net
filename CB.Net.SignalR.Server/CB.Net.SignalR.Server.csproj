@@ -108,7 +108,6 @@
     <Compile Include="SignalRHubBase.cs" />
     <Compile Include="SignalRServerBase.cs" />
     <Compile Include="SignalRServerViewModelBase.cs" />
-    <Compile Include="SignalRServiceState.cs" />
     <Compile Include="SignalRStartup.cs" />
   </ItemGroup>
   <ItemGroup>

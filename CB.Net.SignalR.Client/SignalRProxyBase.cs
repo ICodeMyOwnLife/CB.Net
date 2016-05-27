@@ -5,7 +5,7 @@ using Microsoft.AspNet.SignalR.Client;
 
 namespace CB.Net.SignalR.Client
 {
-    public abstract class SignalRProxyBase
+    public abstract class SignalRProxyBase: IDisposable
     {
         #region Fields
         protected HubConnection _hubConnection;
@@ -21,13 +21,19 @@ namespace CB.Net.SignalR.Client
         {
             SignalRUrl = signalRUrl;
             HubName = hubName;
+
+            // ReSharper disable once VirtualMemberCallInContructor
+            InitializeProxy();
         }
         #endregion
 
 
         #region  Properties & Indexers
+        public bool CanConnect => State == SignalRState.Disconnected;
+        public bool CanDisconnect => State == SignalRState.Connected;
         public string HubName { get; }
         public string SignalRUrl { get; }
+        public virtual SignalRState State { get; protected set; } = SignalRState.Disconnected;
         #endregion
 
 
@@ -39,20 +45,46 @@ namespace CB.Net.SignalR.Client
         #region Methods
         public virtual async Task ConnectAsync()
         {
-            InitializeProxy();
-            await TryAsync(async () => await _hubConnection.Start());
+            if (!CanConnect)
+            {
+                RaiseStateError();
+                return;
+            }
+            await TryAsync(async () =>
+            {
+                State = SignalRState.Connecting;
+                await _hubConnection.Start();
+                State = SignalRState.Connected;
+            });
         }
 
         public virtual void Disconnect()
-            => Try(() => _hubConnection.Stop());
+        {
+            if (!CanDisconnect)
+            {
+                RaiseStateError();
+                return;
+            }
+            Try(() =>
+            {
+                _hubConnection.Stop();
+                State = SignalRState.Disconnected;
+            });
+        }
+
+        public void Dispose()
+            => _hubConnection?.Dispose();
+
+        public virtual void InitializeProxy(Action<IHubProxy> initializationAction)
+        {
+            initializationAction(_hubProxy);
+        }
         #endregion
 
 
         #region Event Handlers
         protected virtual void OnError(Exception exception)
-        {
-            Error?.Invoke(this, exception);
-        }
+            => Error?.Invoke(this, exception);
         #endregion
 
 
@@ -64,6 +96,12 @@ namespace CB.Net.SignalR.Client
             _hubProxy = _hubConnection.CreateHubProxy(HubName);
             _hubProxy.On<Exception>("error", OnError);
         }
+
+        protected virtual void OnError(string error)
+            => OnError(new Exception(error));
+
+        private void RaiseStateError()
+            => OnError($"Hub proxy is {State.ToString().ToLower()}");
 
         protected virtual void Try(Action action)
         {

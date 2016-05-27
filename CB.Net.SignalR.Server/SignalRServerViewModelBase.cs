@@ -43,15 +43,36 @@ namespace CB.Net.SignalR.Server
         #region Methods
         public async Task StartServerAsync()
         {
+            if (!CanStartServer) return;
+
             Log("Connecting...");
-            if (await _server.Start()) Log($"Connected to {_server.Url}");
+            if (await _server.Start())
+            {
+                NotifyEnabilityChanged();
+                Log($"Connected to {_server.Url}");
+            }
             else LogError(_server.Error);
         }
 
         public void StopServer()
         {
-            if (_server.Stop()) Log("Disconnected");
+            if (!CanStopServer) return;
+
+            if (_server.Stop())
+            {
+                NotifyEnabilityChanged();
+                Log("Disconnected");
+            }
             else LogError(_server.Error);
+        }
+        #endregion
+
+
+        #region Implementation
+        protected virtual void NotifyEnabilityChanged()
+        {
+            NotifyPropertiesChanged(nameof(CanStartServer), nameof(CanStopServer));
+            RaiseCommandsCanExecuteChanged(StartServerAsyncCommand, StopServerCommand);
         }
         #endregion
     }
