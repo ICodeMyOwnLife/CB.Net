@@ -46,7 +46,3 @@ namespace CB.Net.SignalR.Client
         #endregion
     }
 }
-
-
-
-// CanSignIn, CanSendMessage, CanChoose
