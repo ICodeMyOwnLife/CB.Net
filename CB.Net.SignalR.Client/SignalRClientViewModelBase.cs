@@ -28,6 +28,12 @@ namespace CB.Net.SignalR.Client
         #endregion
 
 
+        #region Abstract
+        public abstract void Log(string logContent);
+        public abstract void LogError(Exception exception);
+        #endregion
+
+
         #region  Properties & Indexers
         public virtual bool CanConnect
         {
@@ -95,7 +101,6 @@ namespace CB.Net.SignalR.Client
                 LogError(exception);
                 CanDisconnect = true;
             }
-            
         }
         #endregion
 
@@ -113,9 +118,5 @@ namespace CB.Net.SignalR.Client
             RaiseCommandsCanExecuteChanged(ConnectAsyncCommand, DisconnectCommand);
         }
         #endregion
-
-
-        public abstract void Log(string logContent);
-        public abstract void LogError(Exception exception);
     }
 }
