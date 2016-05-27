@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CB.Model.Common;
@@ -7,8 +8,8 @@ using Microsoft.Practices.Prism.Commands;
 
 namespace CB.Net.SignalR.Server
 {
-    public abstract class SignalRServerViewModelBase<TSignalRServer> : PrismViewModelBase, ILog
-        where TSignalRServer : SignalRServerBase
+    public abstract class SignalRServerViewModelBase<TSignalRServer>: PrismViewModelBase, ILog
+        where TSignalRServer: SignalRServerBase
     {
         #region Fields
         protected readonly TSignalRServer _server;
@@ -27,6 +28,7 @@ namespace CB.Net.SignalR.Server
 
         #region Abstract
         public abstract void Log(string logContent);
+        public abstract void LogError(Exception exception);
         #endregion
 
 
@@ -42,11 +44,15 @@ namespace CB.Net.SignalR.Server
         public async Task StartServerAsync()
         {
             Log("Connecting...");
-            Log(await _server.Start() ? $"Connected to {_server.Url}" : _server.Error);
+            if (await _server.Start()) Log($"Connected to {_server.Url}");
+            else LogError(_server.Error);
         }
 
         public void StopServer()
-            => Log(_server.Stop() ? "Disconnected" : _server.Error);
+        {
+            if (_server.Stop()) Log("Disconnected");
+            else LogError(_server.Error);
+        }
         #endregion
     }
 }

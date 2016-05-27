@@ -13,7 +13,8 @@ namespace CB.Net.SignalR.Server
 
 
         #region  Constructors & Destructor
-        protected SignalRServerBase(SignalRConfiguration configuration) : this(configuration.ConfigurationSection.Url) { }
+        protected SignalRServerBase(SignalRConfiguration configuration): this(configuration.ConfigurationSection.Url) { }
+
         protected SignalRServerBase(string signalRUrl)
         {
             Url = signalRUrl;
@@ -24,7 +25,7 @@ namespace CB.Net.SignalR.Server
         #region  Properties & Indexers
         public virtual bool CanStart => State == SignalRState.Disconnected;
         public virtual bool CanStop => State == SignalRState.Connected;
-        public virtual string Error { get; private set; }
+        public virtual Exception Error { get; private set; }
         public virtual SignalRState State { get; private set; } = SignalRState.Disconnected;
         public string Url { get; }
         #endregion
@@ -50,7 +51,7 @@ namespace CB.Net.SignalR.Server
             catch (Exception exception)
             {
                 State = SignalRState.Disconnected;
-                Error = exception.Message;
+                Error = exception;
                 return false;
             }
         }
@@ -73,9 +74,7 @@ namespace CB.Net.SignalR.Server
 
         #region Implementation
         protected virtual void SetStateError()
-        {
-            Error = $"Service is {State.ToString().ToLower()}";
-        }
+            => Error = new Exception($"Service is {State.ToString().ToLower()}");
         #endregion
     }
 }

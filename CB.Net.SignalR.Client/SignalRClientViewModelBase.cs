@@ -40,8 +40,11 @@ namespace CB.Net.SignalR.Client
         #region Event Handlers
         private void Proxy_Error(object sender, string e)
         {
-            NotificationRequestProvider.NotifyError(e);
+            NotificationRequestProvider.NotifyErrorOnUiThread(e);
         }
         #endregion
     }
 }
+
+
+// TODO: Implement CanConnet, CanDisconnect
