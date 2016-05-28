@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CB.Model.Common;
@@ -70,11 +71,10 @@ namespace CB.Net.SignalR.Client
         {
             if (!CanConnect) return;
 
-            CanConnect = CanDisconnect = false;
-            _proxy = new TSignalRProxy();
-            _proxy.InitializeProxy(InitializeProxy);
             try
             {
+                CanConnect = CanDisconnect = false;
+                InitializeProxy();
                 await _proxy.ConnectAsync();
                 CanDisconnect = true;
             }
@@ -89,11 +89,11 @@ namespace CB.Net.SignalR.Client
         {
             if (!CanDisconnect) return;
 
-            CanConnect = CanDisconnect = false;
             try
             {
+                CanConnect = CanDisconnect = false;
                 _proxy.Disconnect();
-                _proxy.Dispose();
+                TerminateProxy();
                 CanConnect = true;
             }
             catch (Exception exception)
@@ -105,17 +105,51 @@ namespace CB.Net.SignalR.Client
         #endregion
 
 
-        #region Implementation
-        protected virtual void InitializeProxy(IHubProxy proxy) { }
-
-        private void Proxy_Error(object sender, Exception exception)
+        #region Event Handlers
+        private void Proxy_Error(Exception exception)
         {
             NotificationRequestProvider.NotifyError(exception.Message);
+        }
+
+        private void Proxy_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(SignalRProxyBase.State):
+                    SetEnabilities();
+                    break;
+            }
+        }
+        #endregion
+
+
+        #region Implementation
+        protected virtual void InitializeHubProxy(IHubProxy proxy) { }
+
+        protected virtual void InitializeProxy()
+        {
+            _proxy = new TSignalRProxy();
+            _proxy.InitializeProxy(InitializeHubProxy);
+            _proxy.Error += Proxy_Error;
+            _proxy.PropertyChanged += Proxy_PropertyChanged;
         }
 
         protected virtual void RaiseConnectCanExecuteChanged()
         {
             RaiseCommandsCanExecuteChanged(ConnectAsyncCommand, DisconnectCommand);
+        }
+
+        private void SetEnabilities()
+        {
+            CanConnect = _proxy.State == SignalRState.Disconnected;
+            CanDisconnect = _proxy.State == SignalRState.Connected;
+        }
+
+        private void TerminateProxy()
+        {
+            _proxy.Error -= Proxy_Error;
+            _proxy.PropertyChanged -= Proxy_PropertyChanged;
+            _proxy.Dispose();
         }
         #endregion
     }
