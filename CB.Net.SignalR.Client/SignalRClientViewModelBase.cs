@@ -16,6 +16,8 @@ namespace CB.Net.SignalR.Client
         #region Fields
         private bool _canConnect = true;
         private bool _canDisconnect;
+
+        private string _logMessage;
         protected TSignalRProxy _proxy;
         #endregion
 
@@ -24,14 +26,8 @@ namespace CB.Net.SignalR.Client
         protected SignalRClientViewModelBase()
         {
             ConnectAsyncCommand = DelegateCommand.FromAsyncHandler(ConnectAsync, () => CanConnect);
-            DisconnectCommand = new DelegateCommand(Disconnect, () => CanDisconnect);
+            DisconnectAsyncCommand = DelegateCommand.FromAsyncHandler(DisconnectAsync, () => CanDisconnect);
         }
-        #endregion
-
-
-        #region Abstract
-        public abstract void Log(string logContent);
-        public abstract void LogError(Exception exception);
         #endregion
 
 
@@ -61,7 +57,14 @@ namespace CB.Net.SignalR.Client
         }
 
         public ICommand ConnectAsyncCommand { get; }
-        public ICommand DisconnectCommand { get; }
+        public ICommand DisconnectAsyncCommand { get; }
+
+        public virtual string LogMessage
+        {
+            get { return _logMessage; }
+            protected set { SetProperty(ref _logMessage, value); }
+        }
+
         public NotificationRequestProvider NotificationRequestProvider { get; } = new NotificationRequestProvider();
         #endregion
 
@@ -71,52 +74,40 @@ namespace CB.Net.SignalR.Client
         {
             if (!CanConnect) return;
 
-            try
-            {
-                CanConnect = CanDisconnect = false;
-                InitializeProxy();
-                await _proxy.ConnectAsync();
-                CanDisconnect = true;
-            }
-            catch (Exception exception)
-            {
-                LogError(exception);
-                CanConnect = true;
-            }
+            InitializeProxy();
+            await _proxy.ConnectAsync();
         }
 
-        public void Disconnect()
+        public async Task DisconnectAsync()
         {
             if (!CanDisconnect) return;
 
-            try
-            {
-                CanConnect = CanDisconnect = false;
-                _proxy.Disconnect();
-                TerminateProxy();
-                CanConnect = true;
-            }
-            catch (Exception exception)
-            {
-                LogError(exception);
-                CanDisconnect = true;
-            }
+            await _proxy.DisconnectAsync();
+            TerminateProxy();
+        }
+
+        public virtual void Log(string logContent)
+            => LogMessage = LogMessage == null ? logContent : LogMessage + Environment.NewLine + logContent;
+
+        public virtual void LogError(Exception exception)
+        {
+            NotificationRequestProvider.NotifyError(exception.Message);
         }
         #endregion
 
 
         #region Event Handlers
-        private void Proxy_Error(Exception exception)
+        protected virtual void OnProxyError(Exception exception)
         {
             NotificationRequestProvider.NotifyError(exception.Message);
         }
 
-        private void Proxy_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        protected virtual void OnProxyPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
             {
-                case nameof(SignalRProxyBase.State):
-                    SetEnabilities();
+                case nameof(SignalRProxyBase.ConnectionState):
+                    SetConnectAbility();
                     break;
             }
         }
@@ -130,25 +121,25 @@ namespace CB.Net.SignalR.Client
         {
             _proxy = new TSignalRProxy();
             _proxy.InitializeProxy(InitializeHubProxy);
-            _proxy.Error += Proxy_Error;
-            _proxy.PropertyChanged += Proxy_PropertyChanged;
+            _proxy.Error += OnProxyError;
+            _proxy.PropertyChanged += OnProxyPropertyChanged;
         }
 
         protected virtual void RaiseConnectCanExecuteChanged()
         {
-            RaiseCommandsCanExecuteChanged(ConnectAsyncCommand, DisconnectCommand);
+            RaiseCommandsCanExecuteChanged(ConnectAsyncCommand, DisconnectAsyncCommand);
         }
 
-        private void SetEnabilities()
+        private void SetConnectAbility()
         {
-            CanConnect = _proxy.State == SignalRState.Disconnected;
-            CanDisconnect = _proxy.State == SignalRState.Connected;
+            CanConnect = _proxy.CanConnect();
+            CanDisconnect = _proxy.CanDisconnect();
         }
 
         private void TerminateProxy()
         {
-            _proxy.Error -= Proxy_Error;
-            _proxy.PropertyChanged -= Proxy_PropertyChanged;
+            _proxy.Error -= OnProxyError;
+            _proxy.PropertyChanged -= OnProxyPropertyChanged;
             _proxy.Dispose();
         }
         #endregion

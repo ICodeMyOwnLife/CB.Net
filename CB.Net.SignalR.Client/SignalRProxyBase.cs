@@ -9,9 +9,9 @@ namespace CB.Net.SignalR.Client
     public abstract class SignalRProxyBase: BindableObject, IDisposable
     {
         #region Fields
+        private SignalRState _connectionState = SignalRState.Disconnected;
         protected HubConnection _hubConnection;
         protected IHubProxy _hubProxy;
-        private SignalRState _state = SignalRState.Disconnected;
         #endregion
 
 
@@ -28,14 +28,14 @@ namespace CB.Net.SignalR.Client
 
 
         #region  Properties & Indexers
+        public virtual SignalRState ConnectionState
+        {
+            get { return _connectionState; }
+            protected set { SetProperty(ref _connectionState, value); }
+        }
+
         public string HubName { get; }
         public string SignalRUrl { get; }
-
-        public virtual SignalRState State
-        {
-            get { return _state; }
-            protected set { SetProperty(ref _state, value); }
-        }
         #endregion
 
 
@@ -45,21 +45,43 @@ namespace CB.Net.SignalR.Client
 
 
         #region Methods
+        public bool CanConnect()
+            => ConnectionState == SignalRState.Disconnected;
+
+        public bool CanDisconnect()
+            => ConnectionState == SignalRState.Connected;
+
         public virtual async Task ConnectAsync()
-            => await TryAsync(async () =>
+        {
+            if (!CanConnect())
             {
-                State = SignalRState.Connecting;
+                OnStateError();
+                return;
+            }
+
+            await TryAsync(async () =>
+            {
+                ConnectionState = SignalRState.Connecting;
                 InitializeProxy();
                 await _hubConnection.Start();
-                State = SignalRState.Connected;
-            });
+                ConnectionState = SignalRState.Connected;
+            }, () => { ConnectionState = SignalRState.Disconnected; });
+        }
 
-        public virtual void Disconnect()
-            => Try(() =>
+        public virtual async Task DisconnectAsync()
+        {
+            if (!CanDisconnect())
+            {
+                OnStateError();
+                return;
+            }
+
+            Try(() =>
             {
                 _hubConnection.Stop();
-                State = SignalRState.Disconnected;
-            });
+                ConnectionState = SignalRState.Disconnected;
+            }, () => ConnectionState = SignalRState.Connected);
+        }
 
         public void Dispose()
             => _hubConnection?.Dispose();
@@ -89,7 +111,10 @@ namespace CB.Net.SignalR.Client
         protected virtual void OnError(string error)
             => OnError(new Exception(error));
 
-        protected virtual void Try(Action action)
+        private void OnStateError()
+            => OnError($"Proxy is {ConnectionState.ToString().ToLower()}");
+
+        protected virtual void Try(Action action, Action catchAction = null)
         {
             try
             {
@@ -98,10 +123,11 @@ namespace CB.Net.SignalR.Client
             catch (Exception exception)
             {
                 OnError(exception);
+                catchAction?.Invoke();
             }
         }
 
-        protected virtual async Task TryAsync(Func<Task> action)
+        protected virtual async Task TryAsync(Func<Task> action, Action catchAction = null)
         {
             try
             {
@@ -110,6 +136,7 @@ namespace CB.Net.SignalR.Client
             catch (Exception exception)
             {
                 OnError(exception);
+                catchAction?.Invoke();
             }
         }
         #endregion
