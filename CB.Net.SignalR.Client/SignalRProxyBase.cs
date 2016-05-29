@@ -23,6 +23,8 @@ namespace CB.Net.SignalR.Client
         {
             SignalRUrl = signalRUrl;
             HubName = hubName;
+            _hubConnection = new HubConnection(SignalRUrl);
+            _hubProxy = _hubConnection.CreateHubProxy(HubName);
         }
         #endregion
 
@@ -76,11 +78,12 @@ namespace CB.Net.SignalR.Client
                 return;
             }
 
-            Try(() =>
-            {
-                _hubConnection.Stop();
-                ConnectionState = SignalRState.Disconnected;
-            }, () => ConnectionState = SignalRState.Connected);
+            await TryAsync(async () =>
+             {
+                 await Task.Delay(0);
+                 _hubConnection.Stop();
+                 ConnectionState = SignalRState.Disconnected;
+             }, () => ConnectionState = SignalRState.Connected);
         }
 
         public void Dispose()
@@ -102,9 +105,7 @@ namespace CB.Net.SignalR.Client
         #region Implementation
         protected virtual void InitializeProxy()
         {
-            _hubConnection = new HubConnection(SignalRUrl);
             _hubConnection.Error += OnError;
-            _hubProxy = _hubConnection.CreateHubProxy(HubName);
             _hubProxy.On<Exception>("error", OnError);
         }
 

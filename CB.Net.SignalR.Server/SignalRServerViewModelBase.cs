@@ -32,11 +32,15 @@ namespace CB.Net.SignalR.Server
         #endregion
 
 
+        #region  Commands
+        public ICommand StartServerAsyncCommand { get; }
+        public ICommand StopServerCommand { get; }
+        #endregion
+
+
         #region  Properties & Indexers
         public bool CanStartServer => _server.CanStart;
         public bool CanStopServer => _server.CanStop;
-        public ICommand StartServerAsyncCommand { get; }
-        public ICommand StopServerCommand { get; }
         #endregion
 
 

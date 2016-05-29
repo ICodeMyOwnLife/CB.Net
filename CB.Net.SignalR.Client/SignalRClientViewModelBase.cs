@@ -31,6 +31,12 @@ namespace CB.Net.SignalR.Client
         #endregion
 
 
+        #region  Commands
+        public ICommand ConnectAsyncCommand { get; }
+        public ICommand DisconnectAsyncCommand { get; }
+        #endregion
+
+
         #region  Properties & Indexers
         public virtual bool CanConnect
         {
@@ -55,9 +61,6 @@ namespace CB.Net.SignalR.Client
                 }
             }
         }
-
-        public ICommand ConnectAsyncCommand { get; }
-        public ICommand DisconnectAsyncCommand { get; }
 
         public virtual string LogMessage
         {
@@ -115,7 +118,7 @@ namespace CB.Net.SignalR.Client
 
 
         #region Implementation
-        protected virtual void InitializeHubProxy(IHubProxy proxy) { }
+        protected virtual void InitializeHubProxy(IHubProxy hubProxy) { }
 
         protected virtual void InitializeProxy()
         {
